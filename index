@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Data Form</title>
+<style>
+  :root{
+    --purple-900:#3a1c71;
+    --purple-800:#4527a0;
+    --blue-900:#283593;
+    --ink:#1f2430;
+    --muted:#6b7280;
+    --line:#e3e6ec;
+    --bg:#f4f5f9;
+    --card:#ffffff;
+    --field-bg:#f8f9fc;
+    --accent:#4527a0;
+    --danger:#dc2626;
+    --danger-bg:#fef2f2;
+    --success:#15803d;
+    --success-bg:#f0fdf4;
+    --radius-lg:16px;
+    --radius-md:10px;
+    --radius-sm:8px;
+    --shadow:0 10px 30px -12px rgba(40,53,147,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#eef0f9 0%,var(--bg) 260px);
+    color:var(--ink);
+    min-height:100vh;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:840px;margin:0 auto;}
+  .card{
+    background:var(--card);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .header{
+    background:linear-gradient(120deg,var(--purple-900) 0%,var(--purple-800) 45%,var(--blue-900) 100%);
+    color:#fff;
+    padding:28px 28px 24px;
+    position:relative;
+  }
+  .header::after{
+    content:"";
+    position:absolute;left:0;right:0;bottom:-1px;height:6px;
+    background:linear-gradient(90deg,#22c55e,#eab308,#3b82f6,#f97316);
+    opacity:.9;
+  }
+  .header-top{display:flex;align-items:center;gap:14px;}
+  .header-icon{
+    width:44px;height:44px;border-radius:12px;
+    background:rgba(255,255,255,0.15);
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;
+  }
+  .header-icon svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;}
+  .header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .header p{margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.78);}
+
+  form{padding:26px 26px 30px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;}
+  @media(max-width:640px){.grid{grid-template-columns:1fr;} body{padding:12px 8px 40px;} .header{padding:22px 18px 20px;} form{padding:18px 18px 22px;}}
+
+  .field{display:flex;flex-direction:column;gap:6px;position:relative;}
+  .field.full{grid-column:1 / -1;}
+  label{
+    font-size:13px;font-weight:600;color:#374151;
+    display:flex;align-items:center;gap:7px;
+  }
+  label .req{color:var(--danger);font-weight:700;}
+  .icon{
+    width:18px;height:18px;flex:0 0 auto;
+    display:inline-flex;align-items:center;justify-content:center;
+    color:var(--accent);
+  }
+  .icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+
+  input[type=text],input[type=tel],input[type=date],textarea,select{
+    width:100%;
+    padding:11px 13px;
+    border:1px solid var(--line);
+    background:var(--field-bg);
+    border-radius:var(--radius-sm);
+    font-size:14.5px;
+    color:var(--ink);
+    font-family:inherit;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:16px;
+    padding-right:36px;
+    cursor:pointer;
+  }
+  select:invalid{color:#9ca3af;}
+  input::placeholder,textarea::placeholder{color:#9ca3af;}
+  input:focus,textarea:focus,select:focus{
+    outline:none;
+    border-color:var(--accent);
+    background-color:#fff;
+    box-shadow:0 0 0 3px rgba(69,39,160,0.12);
+  }
+  textarea{resize:vertical;min-height:78px;line-height:1.4;}
+
+  .hint{font-size:11.5px;color:var(--muted);}
+  .counter{font-size:11.5px;color:var(--muted);text-align:right;}
+  .error-text{font-size:12px;color:var(--danger);display:none;}
+  .field.invalid input,.field.invalid textarea{border-color:var(--danger);background:var(--danger-bg);}
+  .field.invalid .error-text{display:block;}
+
+  /* Searchable state dropdown */
+  .combo{position:relative;}
+  .combo-input{cursor:pointer;}
+  .combo-input[readonly]{background-color:var(--field-bg);caret-color:transparent;}
+  .combo-list{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);
+    box-shadow:0 14px 34px -10px rgba(31,36,48,0.25);
+    max-height:220px;overflow-y:auto;z-index:30;display:none;
+    padding:6px;
+  }
+  .combo-list.open{display:block;}
+  .combo-option{
+    padding:9px 10px;border-radius:7px;font-size:14px;cursor:pointer;color:var(--ink);
+  }
+  .combo-option:hover,.combo-option.active{background:#eef0fb;}
+  .combo-empty{padding:10px;font-size:13px;color:var(--muted);}
+
+  /* Date display */
+  .date-row{display:flex;gap:8px;align-items:center;}
+  .date-display{
+    font-size:12.5px;color:var(--accent);font-weight:600;
+    background:#eef0fb;padding:4px 9px;border-radius:20px;white-space:nowrap;
+  }
+
+  /* Status badges */
+  .status-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .status-badge{
+    border:1.5px solid var(--line);
+    background:#fff;
+    padding:9px 15px;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;align-items:center;gap:7px;
+    transition:transform .1s, box-shadow .15s, border-color .15s;
+    user-select:none;
+  }
+  .status-badge .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .status-badge:hover{transform:translateY(-1px);}
+  .status-badge.selected{color:#fff;border-color:transparent;box-shadow:0 6px 16px -6px rgba(0,0,0,0.35);}
+  .status-badge.selected .dot{background:#fff;}
+
+  .status-badge[data-status="Interested"] .dot{background:#16a34a;}
+  .status-badge[data-status="Interested"].selected{background:#16a34a;}
+  .status-badge[data-status="Follow-up"] .dot{background:#d97706;}
+  .status-badge[data-status="Follow-up"].selected{background:#d97706;}
+  .status-badge[data-status="Converted"] .dot{background:#2563eb;}
+  .status-badge[data-status="Converted"].selected{background:#2563eb;}
+  .status-badge[data-status="Not Interested"] .dot{background:#dc2626;}
+  .status-badge[data-status="Not Interested"].selected{background:#dc2626;}
+
+  .actions{
+    display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;
+  }
+  button{font-family:inherit;font-size:14.5px;font-weight:700;border-radius:var(--radius-md);cursor:pointer;border:none;padding:13px 22px;transition:opacity .15s, transform .1s;}
+  button:active{transform:scale(0.98);}
+  .btn-submit{
+    flex:1 1 220px;
+    background:linear-gradient(120deg,var(--purple-800),var(--blue-900));
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    box-shadow:0 10px 22px -8px rgba(69,39,160,0.55);
+  }
+  .btn-submit:disabled{opacity:.65;cursor:not-allowed;box-shadow:none;}
+  .btn-reset{
+    flex:0 0 auto;
+    background:#fff;
+    color:#374151;
+    border:1.5px solid var(--line);
+  }
+  .spinner{
+    width:16px;height:16px;border-radius:50%;
+    border:2.5px solid rgba(255,255,255,0.45);
+    border-top-color:#fff;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .btn-submit.loading .spinner{display:inline-block;}
+  .btn-submit.loading .btn-label{opacity:.85;}
+
+  .banner{
+    display:none;
+    margin:0 26px 0;
+    border-radius:var(--radius-md);
+    padding:13px 16px;
+    font-size:13.5px;
+    align-items:flex-start;gap:10px;
+  }
+  .banner.show{display:flex;}
+  .banner.success{background:var(--success-bg);color:var(--success);border:1px solid #bbf7d0;}
+  .banner.error{background:var(--danger-bg);color:var(--danger);border:1px solid #fecaca;}
+  .banner svg{width:18px;height:18px;flex:0 0 auto;margin-top:1px;}
+  .banner strong{display:block;margin-bottom:2px;}
+
+  .footer-note{
+    text-align:center;font-size:11.5px;color:var(--muted);margin-top:16px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="header">
+      <div class="header-top">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <h1>2. CUSTOMER DATA FORM</h1>
+          <p>Capture walk-in and follow-up customer details for the zone team</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="banner" class="banner">
+      <svg id="bannerIcon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      <div>
+        <strong id="bannerTitle"></strong>
+        <span id="bannerMsg"></span>
+      </div>
+    </div>
+
+    <form id="customerForm" novalidate>
+      <div class="grid">
+
+        <div class="field combo" id="shopField">
+          <label for="shopInput"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10h16V9"/></svg></span>Shop Name<span class="req">*</span></label>
+          <input type="text" id="shopInput" class="combo-input" placeholder="Select a shop" autocomplete="off" readonly>
+          <input type="hidden" id="shopName" name="shopName">
+          <div class="combo-list" id="shopList"></div>
+          <span class="error-text">Please select a shop.</span>
+        </div>
+
+        <div class="field">
+          <label for="location"><span class="icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>Location<span class="req">*</span></label>
+          <input type="text" id="location" name="location" placeholder="e.g. Gold Souq, Deira" autocomplete="off">
+          <span class="error-text">Location is required.</span>
+        </div>
+
+        <div class="field">
+          <label for="customerName"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>Customer Name<span class="req">*</span></label>
+          <input type="text" id="customerName" name="customerName" placeholder="Full name" autocomplete="off">
+          <span class="error-text">Customer name is required.</span>
+        </div>
+
+        <div class="field">
+          <label for="mobileNumber"><span class="icon"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Mobile Number<span class="req">*</span></label>
+          <input type="tel" id="mobileNumber" name="mobileNumber" placeholder="+971 5X XXX XXXX" autocomplete="off">
+          <span class="hint">Include country code, e.g. +971501234567</span>
+          <span class="error-text">Enter a valid mobile number (7–15 digits, optional +).</span>
+        </div>
+
+        <div class="field">
+          <label for="staffName"><span class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Staff Name<span class="req">*</span></label>
+          <input type="text" id="staffName" name="staffName" placeholder="Handled by" autocomplete="off">
+          <span class="error-text">Staff name is required.</span>
+        </div>
+
+        <div class="field combo" id="teamField">
+          <label for="teamInput"><span class="icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team<span class="req">*</span></label>
+          <input type="text" id="teamInput" class="combo-input" placeholder="Select a team" autocomplete="off" readonly>
+          <input type="hidden" id="team" name="team">
+          <div class="combo-list" id="teamList"></div>
+          <span class="error-text">Please select a team.</span>
+        </div>
+
+        <div class="field combo" id="stateField">
+          <label for="stateInput"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></span>State<span class="req">*</span></label>
+          <input type="text" id="stateInput" class="combo-input" placeholder="Search & select a state / UT" autocomplete="off">
+          <input type="hidden" id="state" name="state">
+          <div class="combo-list" id="stateList"></div>
+          <span class="error-text">Please select a valid state or union territory.</span>
+        </div>
+
+        <div class="field full">
+          <label><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/><path d="M12 8v4l3 2"/></svg></span>Status<span class="req">*</span></label>
+          <div class="status-group" id="statusGroup">
+            <div class="status-badge" data-status="Interested"><span class="dot"></span>Interested</div>
+            <div class="status-badge" data-status="Follow-up"><span class="dot"></span>Follow-up</div>
+            <div class="status-badge" data-status="Converted"><span class="dot"></span>Converted</div>
+            <div class="status-badge" data-status="Not Interested"><span class="dot"></span>Not Interested</div>
+          </div>
+          <input type="hidden" id="status" name="status">
+          <span class="error-text">Please select a status.</span>
+        </div>
+
+        <div class="field">
+          <label for="dateInput"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Date<span class="req">*</span></label>
+          <div class="date-row">
+            <input type="date" id="dateInput" name="dateInput" style="flex:1;">
+            <span class="date-display" id="dateDisplay">--/--/----</span>
+          </div>
+          <span class="error-text">Please select a date.</span>
+        </div>
+
+        <div class="field full">
+          <label for="remarks"><span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Remarks</label>
+          <textarea id="remarks" name="remarks" maxlength="500" placeholder="Optional notes about the customer or conversation..."></textarea>
+          <div class="counter"><span id="remarksCount">0</span>/500</div>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="spinner"></span>
+          <span class="btn-label" id="submitLabel">Submit</span>
+        </button>
+        <button type="button" class="btn-reset" id="resetBtn">Clear</button>
+      </div>
+      <p class="footer-note">Records are saved to the CustomerData Excel table in OneDrive via Power Automate.</p>
+    </form>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURATION — paste your Power Automate HTTP URL here
+   ========================================================= */
+const POWER_AUTOMATE_URL = "PASTE_YOUR_POWER_AUTOMATE_URL_HERE";
+/* ========================================================= */
+
+const SHOP_CODES = [
+  "UMDDI1","UMDDI2","UMDDI3","UMDGS","UMDGS2","UMDGS3","UMDGS4","UMDGS5","UMDGS6","UMDRS"
+];
+
+const TEAM_CODES = ["TEAM 1","TEAM 2","TEAM 3","TEAM 4","TEAM 5"];
+
+const INDIAN_STATES = [
+  "N/A",
+  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
+  "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh",
+  "Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab",
+  "Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh",
+  "Uttarakhand","West Bengal",
+  "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry"
+];
+
+const form = document.getElementById('customerForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitLabel = document.getElementById('submitLabel');
+const resetBtn = document.getElementById('resetBtn');
+const banner = document.getElementById('banner');
+const bannerTitle = document.getElementById('bannerTitle');
+const bannerMsg = document.getElementById('bannerMsg');
+const bannerIcon = document.getElementById('bannerIcon');
+
+let isSubmitting = false;
+
+/* ---------- Date default + DD/MM/YYYY display ---------- */
+const dateInput = document.getElementById('dateInput');
+const dateDisplay = document.getElementById('dateDisplay');
+
+function toISODate(d){
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+function isoToDMY(iso){
+  if(!iso) return '--/--/----';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+dateInput.value = toISODate(new Date());
+dateDisplay.textContent = isoToDMY(dateInput.value);
+dateInput.addEventListener('change', () => {
+  dateDisplay.textContent = isoToDMY(dateInput.value);
+  clearFieldError('dateField');
+});
+
+/* ---------- Shop Name combo ---------- */
+const shopField = document.getElementById('shopField');
+const shopInput = document.getElementById('shopInput');
+const shopHidden = document.getElementById('shopName');
+const shopList = document.getElementById('shopList');
+
+function renderShopOptions(){
+  shopList.innerHTML = '';
+  SHOP_CODES.forEach(code => {
+    const opt = document.createElement('div');
+    opt.className = 'combo-option';
+    opt.textContent = code;
+    opt.addEventListener('click', () => {
+      shopInput.value = code;
+      shopHidden.value = code;
+      closeShopList();
+      clearFieldError('shopField');
+    });
+    shopList.appendChild(opt);
+  });
+}
+function openShopList(){ renderShopOptions(); shopList.classList.add('open'); }
+function closeShopList(){ shopList.classList.remove('open'); }
+
+shopInput.addEventListener('click', openShopList);
+shopInput.addEventListener('focus', openShopList);
+document.addEventListener('click', (e) => {
+  if(!shopField.contains(e.target)) closeShopList();
+});
+
+/* ---------- Team combo ---------- */
+const teamField = document.getElementById('teamField');
+const teamInput = document.getElementById('teamInput');
+const teamHidden = document.getElementById('team');
+const teamList = document.getElementById('teamList');
+
+function renderTeamOptions(){
+  teamList.innerHTML = '';
+  TEAM_CODES.forEach(code => {
+    const opt = document.createElement('div');
+    opt.className = 'combo-option';
+    opt.textContent = code;
+    opt.addEventListener('click', () => {
+      teamInput.value = code;
+      teamHidden.value = code;
+      closeTeamList();
+      clearFieldError('teamField');
+    });
+    teamList.appendChild(opt);
+  });
+}
+function openTeamList(){ renderTeamOptions(); teamList.classList.add('open'); }
+function closeTeamList(){ teamList.classList.remove('open'); }
+
+teamInput.addEventListener('click', openTeamList);
+teamInput.addEventListener('focus', openTeamList);
+document.addEventListener('click', (e) => {
+  if(!teamField.contains(e.target)) closeTeamList();
+});
+
+/* ---------- Searchable State combo ---------- */
+const stateField = document.getElementById('stateField');
+const stateInput = document.getElementById('stateInput');
+const stateHidden = document.getElementById('state');
+const stateList = document.getElementById('stateList');
+
+function renderStateOptions(filter=''){
+  const q = filter.trim().toLowerCase();
+  const matches = INDIAN_STATES.filter(s => s.toLowerCase().includes(q));
+  stateList.innerHTML = '';
+  if(matches.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'combo-empty';
+    empty.textContent = 'No matching state or UT';
+    stateList.appendChild(empty);
+    return;
+  }
+  matches.forEach(s => {
+    const opt = document.createElement('div');
+    opt.className = 'combo-option';
+    opt.textContent = s;
+    opt.addEventListener('click', () => {
+      stateInput.value = s;
+      stateHidden.value = s;
+      closeStateList();
+      clearFieldError('stateField');
+    });
+    stateList.appendChild(opt);
+  });
+}
+function openStateList(){ renderStateOptions(stateInput.value); stateList.classList.add('open'); }
+function closeStateList(){ stateList.classList.remove('open'); }
+
+stateInput.addEventListener('focus', openStateList);
+stateInput.addEventListener('input', () => {
+  stateHidden.value = '';
+  openStateList();
+});
+document.addEventListener('click', (e) => {
+  if(!stateField.contains(e.target)) closeStateList();
+});
+
+/* ---------- Status badges ---------- */
+const statusGroup = document.getElementById('statusGroup');
+const statusHidden = document.getElementById('status');
+statusGroup.querySelectorAll('.status-badge').forEach(badge => {
+  badge.addEventListener('click', () => {
+    statusGroup.querySelectorAll('.status-badge').forEach(b => b.classList.remove('selected'));
+    badge.classList.add('selected');
+    statusHidden.value = badge.dataset.status;
+    clearFieldError('statusGroup');
+  });
+});
+
+/* ---------- Remarks counter ---------- */
+const remarks = document.getElementById('remarks');
+const remarksCount = document.getElementById('remarksCount');
+remarks.addEventListener('input', () => {
+  remarksCount.textContent = remarks.value.length;
+});
+
+/* ---------- Field error helpers ---------- */
+function setFieldError(fieldId){
+  const el = document.getElementById(fieldId);
+  const wrapper = el.closest('.field') || el;
+  wrapper.classList.add('invalid');
+}
+function clearFieldError(fieldId){
+  const el = document.getElementById(fieldId);
+  const wrapper = el.closest('.field') || el;
+  wrapper.classList.remove('invalid');
+}
+['location','customerName','mobileNumber','staffName'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => clearFieldError(id));
+  el.addEventListener('change', () => clearFieldError(id));
+});
+
+/* ---------- Mobile validation ---------- */
+function isValidMobile(raw){
+  const cleaned = raw.replace(/[\s\-()]/g, '');
+  return /^\+?[1-9]\d{6,14}$/.test(cleaned);
+}
+
+/* ---------- Banner ---------- */
+function showBanner(type, title, msg){
+  banner.className = 'banner show ' + type;
+  bannerTitle.textContent = title;
+  bannerMsg.textContent = msg;
+  bannerIcon.innerHTML = type === 'success'
+    ? '<path d="M20 6 9 17l-5-5"/>'
+    : '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>';
+  banner.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function hideBanner(){
+  banner.className = 'banner';
+}
+
+/* ---------- Validation ---------- */
+function validateForm(){
+  let valid = true;
+  const values = {
+    shopName: document.getElementById('shopName').value.trim(),
+    location: document.getElementById('location').value.trim(),
+    customerName: document.getElementById('customerName').value.trim(),
+    mobileNumber: document.getElementById('mobileNumber').value.trim(),
+    staffName: document.getElementById('staffName').value.trim(),
+    team: teamHidden.value.trim(),
+    state: stateHidden.value.trim(),
+    status: statusHidden.value.trim(),
+    remarks: remarks.value.trim(),
+    date: dateInput.value
+  };
+
+  if(!values.shopName || !SHOP_CODES.includes(values.shopName)){ setFieldError('shopField'); valid = false; } else clearFieldError('shopField');
+  if(!values.location){ setFieldError('location'); valid = false; } else clearFieldError('location');
+  if(!values.customerName){ setFieldError('customerName'); valid = false; } else clearFieldError('customerName');
+  if(!values.mobileNumber || !isValidMobile(values.mobileNumber)){ setFieldError('mobileNumber'); valid = false; } else clearFieldError('mobileNumber');
+  if(!values.staffName){ setFieldError('staffName'); valid = false; } else clearFieldError('staffName');
+  if(!values.team || !TEAM_CODES.includes(values.team)){ setFieldError('teamField'); valid = false; } else clearFieldError('teamField');
+  if(!values.state || !INDIAN_STATES.includes(values.state)){ setFieldError('stateField'); valid = false; } else clearFieldError('stateField');
+  if(!values.status){ setFieldError('statusGroup'); valid = false; } else clearFieldError('statusGroup');
+  if(!values.date){ valid = false; }
+
+  return { valid, values };
+}
+
+/* ---------- Reset ---------- */
+function resetForm(){
+  form.reset();
+  shopInput.value = '';
+  shopHidden.value = '';
+  teamInput.value = '';
+  teamHidden.value = '';
+  stateHidden.value = '';
+  statusHidden.value = '';
+  statusGroup.querySelectorAll('.status-badge').forEach(b => b.classList.remove('selected'));
+  remarksCount.textContent = '0';
+  dateInput.value = toISODate(new Date());
+  dateDisplay.textContent = isoToDMY(dateInput.value);
+  ['shopField','location','customerName','mobileNumber','staffName','teamField','stateField','statusGroup'].forEach(clearFieldError);
+}
+resetBtn.addEventListener('click', () => {
+  resetForm();
+  hideBanner();
+});
+
+/* ---------- Submit ---------- */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(isSubmitting) return;
+
+  hideBanner();
+  const { valid, values } = validateForm();
+  if(!valid){
+    showBanner('error', 'Please check the form', 'Some required fields are missing or invalid.');
+    return;
+  }
+
+  if(POWER_AUTOMATE_URL === "PASTE_YOUR_POWER_AUTOMATE_URL_HERE"){
+    showBanner('error', 'Setup needed', 'Paste your Power Automate URL into POWER_AUTOMATE_URL in the script before submitting.');
+    return;
+  }
+
+  isSubmitting = true;
+  submitBtn.disabled = true;
+  submitBtn.classList.add('loading');
+  submitLabel.textContent = 'Saving...';
+
+  const payload = {
+    shopName: values.shopName,
+    location: values.location,
+    customerName: values.customerName,
+    mobileNumber: values.mobileNumber,
+    staffName: values.staffName,
+    team: values.team,
+    state: values.state,
+    status: values.status,
+    remarks: values.remarks,
+    date: isoToDMY(values.date)
+  };
+
+  try {
+    const response = await fetch(POWER_AUTOMATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if(!response.ok){
+      throw new Error('Server returned status ' + response.status);
+    }
+
+    let result = {};
+    try { result = await response.json(); } catch(_) { /* some flows return empty body */ }
+
+    showBanner('success', 'Saved successfully',
+      `${values.customerName}'s details were recorded.` + (result.id ? ` (ID: ${result.id})` : ''));
+    resetForm();
+
+  } catch (err) {
+    showBanner('error', 'Submission failed', 'Could not save the record. Please check your connection and try again. (' + err.message + ')');
+  } finally {
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('loading');
+    submitLabel.textContent = 'Submit';
+  }
+});
+</script>
+</body>
+</html>
